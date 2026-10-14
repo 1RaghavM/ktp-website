@@ -12,6 +12,7 @@ import { hasSupabaseConfig, supabase } from '@/lib/supabase';
 import { readCachedData, writeCachedData } from '@/lib/publicDataCache';
 import { MEMBERS_CACHE_KEY } from '@/lib/cacheKeys';
 import { greekLetters, memberProfileToCardMember } from './memberProfileMapper';
+import LineageTab from './LineageTab';
 
 const MEMBERS_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -217,7 +218,7 @@ export default function MembersPage() {
         </Typography>
 
         <Tabs
-          tabs={['Executive Board', 'Active Members', 'Committees', 'Alumni']}
+          tabs={['Executive Board', 'Active Members', 'Committees', 'Alumni', 'Lineage']}
           active={activeTab}
           setActive={handleTabChange}
         />
@@ -242,7 +243,9 @@ export default function MembersPage() {
             Loading members...
           </Typography>
         )}
-        {activeTab !== 'Committees' ? (
+        {activeTab === 'Lineage' ? (
+          <LineageTab />
+        ) : activeTab !== 'Committees' ? (
           activeTab === 'Alumni' ? (
             (() => {
               const filtered = allMembers.filter(m => m.status === 'Alumni');

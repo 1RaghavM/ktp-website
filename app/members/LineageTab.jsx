@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Typography, Box } from '@mui/material';
-import { grey } from '@mui/material/colors';
+import React, { useEffect, useMemo, useState } from 'react';
+import styles from './LineageTab.module.css';
 
 const lineage = [
   {
@@ -40,7 +39,7 @@ const lineage = [
     ],
   },
   {
-    name: 'Priyanghsu Bhowmik',
+    name: 'Priyangshu Bhowmik',
     children: [
       {
         name: 'Yugal Shah',
@@ -116,70 +115,98 @@ const lineage = [
   },
 ];
 
-const countDescendants = (node) =>
-  (node.children || []).reduce((sum, c) => sum + 1 + countDescendants(c), 0);
+// Keep matching explicit: namesakes must never share a photo based on first name.
+const normalizeName = (name = '') => name.trim().replace(/\s+/g, ' ').toLowerCase();
+const canonicalName = (name) => {
+  const normalized = normalizeName(name);
+  return normalized === 'priyanghsu bhowmik' ? 'priyangshu bhowmik' : normalized;
+};
+const familyMembers = (node) => [node, ...(node.children || []).flatMap(familyMembers)];
 
-const LineageNode = ({ node, depth = 0 }) => (
-  <Box>
-    <Box
-      display="inline-block"
-      px={1.5}
-      py={0.5}
-      my={0.5}
-      borderRadius="999px"
-      sx={{
-        bgcolor: depth === 0 ? 'rgba(59,130,246,0.25)' : 'rgba(255, 255, 255, 0.08)',
-        color: depth === 0 ? '#bfdbfe' : 'white',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        fontSize: 14,
-        fontWeight: depth === 0 ? 600 : 500,
-      }}
-    >
-      {node.name}
-    </Box>
+function Portrait({ name, member, root }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('');
+  // The mapper's generic chapter icon is not a member headshot.
+  const publicImage = member?.image?.trim();
+  const image = publicImage && publicImage !== '/ktp-icon.png'
+    ? publicImage
+    : canonicalName(name) === 'raghul srinivasan' ? '/headshots/Beta/Raghul.jpg' : null;
 
-    {node.children && node.children.length > 0 && (
-      <Box
-        ml={2.5}
-        pl={2}
-        sx={{ borderLeft: '1px solid rgba(255, 255, 255, 0.2)' }}
-      >
-        {node.children.map((child) => (
-          <LineageNode key={child.name} node={child} depth={depth + 1} />
-        ))}
-      </Box>
-    )}
-  </Box>
-);
+  useEffect(() => setFailed(false), [image]);
 
-export default function LineageTab() {
   return (
-    <Box display="flex" flexWrap="wrap" justifyContent="center" width="100%">
-      {lineage.map((root) => {
-        const total = countDescendants(root);
+    <span className={`${styles.portrait} ${root ? styles.rootPortrait : ''}`} aria-hidden="true">
+      <span>{initials}</span>
+      {image && !failed && (
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          style={{
+            objectPosition: member?.cropPosition || 'center',
+            transform: member?.cropScale ? `scale(${member.cropScale})` : undefined,
+            transformOrigin: member?.cropOrigin || 'center',
+          }}
+        />
+      )}
+    </span>
+  );
+}
 
-        return (
-          <Box
-            key={root.name}
-            m={2.5}
-            p={3}
-            width="320px"
-            sx={{
-              bgcolor: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(12px)',
-              color: 'white',
-              borderRadius: '14px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.35)',
-            }}
-          >
-            <LineageNode node={root} />
-            <Typography sx={{ color: grey[400], fontSize: 12, mt: 1.5 }}>
-              {total} {total === 1 ? 'descendant' : 'descendants'}
-            </Typography>
-          </Box>
-        );
-      })}
-    </Box>
+function MemberRow({ node, membersByName, root = false, size }) {
+  const member = membersByName.get(canonicalName(node.name));
+  return (
+    <div className={`${styles.memberRow} ${root ? styles.rootRow : ''}`}>
+      <Portrait key={member?.image || 'initials'} name={node.name} member={member} root={root} />
+      <div className={styles.memberDetails}>
+        {root ? (
+          <h3 className={styles.rootName}>{node.name}</h3>
+        ) : (
+          <p className={styles.memberName}>{node.name}</p>
+        )}
+        {member?.class && <p className={styles.memberClass}>{member.class === 'Founding' ? 'Founding class' : `${member.class} class`}</p>}
+        {root && <p className={styles.familySize}>{size} {size === 1 ? 'member' : 'members'} in this family</p>}
+      </div>
+    </div>
+  );
+}
+
+function Branches({ nodes, membersByName }) {
+  return (
+    <ul className={styles.branches}>
+      {nodes.map((node) => (
+        <li className={styles.branch} key={node.name}>
+          <MemberRow node={node} membersByName={membersByName} />
+          {node.children?.length > 0 && <Branches nodes={node.children} membersByName={membersByName} />}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export default function LineageTab({ members = [] }) {
+  // Use the public directory, with only the explicit Raghul portrait exception above.
+  const membersByName = useMemo(() => new Map(members.map((member) => [canonicalName(member.name), member])), [members]);
+
+  return (
+    <section className={styles.lineage} aria-label="Member lineage">
+        <div className={styles.grid}>
+          {lineage.map((root) => {
+            const size = familyMembers(root).length;
+            return (
+              <article className={styles.family} key={root.name} aria-label={`${root.name} family`}>
+                <MemberRow node={root} membersByName={membersByName} root size={size} />
+                {root.children?.length > 0 ? (
+                  <Branches nodes={root.children} membersByName={membersByName} />
+                ) : (
+                  <p className={styles.singleton}>Every family starts with one connection.</p>
+                )}
+              </article>
+            );
+          })}
+        </div>
+    </section>
   );
 }

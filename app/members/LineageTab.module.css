@@ -1,0 +1,71 @@
+.lineage {
+  width: 100%;
+  min-width: 0;
+  color: #f8fafc;
+}
+
+/* Families read down the first column, then down the next, matching source order. */
+.grid { column-count: 2; column-gap: 24px; }
+.family {
+  display: inline-block;
+  width: 100%;
+  break-inside: avoid;
+  margin-bottom: 24px;
+  min-width: 0;
+  padding: 20px 24px 24px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(23, 49, 83, 0.8), rgba(9, 29, 56, 0.9));
+  box-shadow: 0 8px 24px rgba(0, 10, 28, 0.12);
+}
+.memberRow { display: flex; align-items: center; gap: 12px; position: relative; min-width: 0; padding: 8px 0; }
+.rootRow { padding: 0 0 16px; margin-bottom: 8px; border-bottom: 1px solid rgba(148, 163, 184, 0.16); gap: 16px; }
+.portrait {
+  display: grid;
+  place-items: center;
+  position: relative;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #244976;
+  border: 1px solid rgba(191, 219, 254, 0.25);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 600;
+}
+.rootPortrait { flex-basis: 64px; width: 64px; height: 64px; font-size: 18px; box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.08); }
+.portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.memberDetails { min-width: 0; }
+.rootName, .memberName { margin: 0; overflow-wrap: anywhere; line-height: 1.4; font-weight: 500; font-size: 14px; }
+.rootName { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+.memberClass { margin: 3px 0 0; color: #9bb0cb; font-size: 11px; line-height: 1.4; }
+.familySize { margin: 8px 0 0; color: #bfdbfe; font-size: 11px; }
+
+.branches { list-style: none; margin: 0 0 0 20px; padding: 0 0 0 24px; }
+.branch { position: relative; min-width: 0; }
+.branch::before { content: ''; position: absolute; width: 1px; background: rgba(148, 183, 225, 0.28); left: -24px; top: 0; bottom: 0; }
+.branch:last-child::before { height: 28px; bottom: auto; }
+.branch::after { content: ''; position: absolute; height: 1px; width: 16px; background: rgba(148, 183, 225, 0.28); left: -24px; top: 28px; }
+.branch .branches { margin-left: 20px; }
+.singleton { margin: 20px 0 0; color: #9bb0cb; font-size: 13px; line-height: 1.6; }
+
+@media (max-width: 899px) {
+  .grid { column-count: 1; }
+}
+
+@media (max-width: 599px) {
+  .family { margin-bottom: 20px; padding: 20px; border-radius: 14px; }
+  .rootName { font-size: 18px; }
+  .rootPortrait { flex-basis: 56px; width: 56px; height: 56px; }
+  .memberRow { gap: 10px; }
+  .rootRow { gap: 14px; }
+  .portrait:not(.rootPortrait) { flex-basis: 36px; width: 36px; height: 36px; }
+  .branches { margin-left: 18px; padding-left: 16px; }
+  .branch .branches { margin-left: 18px; }
+  .branch::before { left: -16px; }
+  .branch::after { left: -16px; width: 10px; top: 26px; }
+  .branch:last-child::before { height: 26px; }
+}
+

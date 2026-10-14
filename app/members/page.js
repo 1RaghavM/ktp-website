@@ -244,7 +244,7 @@ export default function MembersPage() {
           </Typography>
         )}
         {activeTab === 'Lineage' ? (
-          <LineageTab />
+          <LineageTab members={allMembers} />
         ) : activeTab !== 'Committees' ? (
           activeTab === 'Alumni' ? (
             (() => {

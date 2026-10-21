@@ -43,9 +43,6 @@ export default function ApplicationTrackerPanel() {
   const [chapterDefault, setChapterDefault] = useState(40);
   const [defaultDraft, setDefaultDraft] = useState(40);
   const [savingDefault, setSavingDefault] = useState(false);
-  const [fineAmount, setFineAmount] = useState(0);
-  const [fineDraft, setFineDraft] = useState(0);
-  const [savingFine, setSavingFine] = useState(false);
   const [processingFines, setProcessingFines] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -59,8 +56,6 @@ export default function ApplicationTrackerPanel() {
           setMembers(result.members || []);
           setChapterDefault(result.chapter_default ?? 40);
           setDefaultDraft(result.chapter_default ?? 40);
-          setFineAmount(Number(result.fine_amount ?? 0));
-          setFineDraft(Number(result.fine_amount ?? 0));
         }
       })
       .catch((e) => {
@@ -85,7 +80,7 @@ export default function ApplicationTrackerPanel() {
     try {
       await api("/api/applications/admin/settings", {
         method: "PUT",
-        body: JSON.stringify({ month, default_target: target, fine_amount: Number(fineAmount) }),
+        body: JSON.stringify({ month, default_target: target }),
       });
       const result = await api(`/api/applications/admin/overview?month=${month}`);
       setMembers(result.members || []);
@@ -95,30 +90,6 @@ export default function ApplicationTrackerPanel() {
       setError(e.message);
     } finally {
       setSavingDefault(false);
-    }
-  }
-
-  async function saveFineAmount() {
-    const amount = Number(fineDraft);
-    if (!Number.isFinite(amount) || amount < 0 || amount > 10000) {
-      setError("Fine amount must be between $0 and $10,000.");
-      return;
-    }
-    setSavingFine(true);
-    setError("");
-    setNotice("");
-    try {
-      await api("/api/applications/admin/settings", {
-        method: "PUT",
-        body: JSON.stringify({ month, default_target: Number(chapterDefault), fine_amount: amount }),
-      });
-      setFineAmount(amount);
-      setFineDraft(amount);
-      setNotice(`Monthly fine amount saved as $${amount.toFixed(2)}.`);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSavingFine(false);
     }
   }
 
@@ -133,9 +104,7 @@ export default function ApplicationTrackerPanel() {
         body: JSON.stringify({ month }),
       });
       const result = response.result || {};
-      setNotice(result.skipped === "fine-disabled"
-        ? "No fines were created because this month’s fine amount is $0."
-        : `Fine processing complete: ${result.created || 0} created for ${result.eligible || 0} eligible members.`);
+      setNotice(`Fine processing complete: ${result.created || 0} created for ${result.eligible || 0} eligible members ($${Number(result.total_assessed || 0).toFixed(2)} assessed).`);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -276,19 +245,12 @@ export default function ApplicationTrackerPanel() {
           </button>
           </div>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
           <div>
-            <p className="font-bold">Monthly application fine</p>
-            <p className="mt-1 text-xs text-white/50">Defaults to $0. Custom-baseline goals, inactive members, alumni, and completed requirements are never fined.</p>
-          </div>
-          <div className="flex items-end gap-2">
-            <label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-white/50">
-              Amount ($)
-              <input type="number" min="0" max="10000" step="0.01" value={fineDraft} onChange={(e) => setFineDraft(e.target.value)} className="w-28 rounded-xl border border-white/15 bg-slate-900 px-3 py-2.5 text-sm text-white" />
-            </label>
-            <button onClick={saveFineAmount} disabled={savingFine || Number(fineDraft) === fineAmount} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold hover:bg-blue-500 disabled:opacity-40">
-              {savingFine ? "Saving…" : "Save fine"}
-            </button>
+            <p className="font-bold">Escalating application fines</p>
+            <p className="mt-1 text-xs text-white/50">
+              Violations are $5, $10, $15, then $20 for every later violation. Paid fines still count toward escalation. Custom-baseline goals, inactive members, alumni, zero requirements, and completed requirements are never fined.
+            </p>
           </div>
         </div>
       </div>

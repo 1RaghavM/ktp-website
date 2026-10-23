@@ -76,6 +76,8 @@ Example create payload:
 
 Create response contains `created`, `duplicates`, `ignored`, `failed`, and `results`. Each result has a zero-based `index` and `status`: `created`, `duplicate`, `ignored` (previously deleted), `invalid` (validation error), or `failed` (database error, retryable). Created/duplicate results include `email`; failed/invalid results include `errors`. `failed` counts both failed and invalid rows. Rows are independent, so one invalid row does not discard successful rows. HTTP 201 means at least one row was created; HTTP 200 means none were created, including all-invalid batches. Inspect row statuses instead of relying only on the HTTP code.
 
+MCP validates tool arguments before calling the API. A schema-invalid row can reject the entire MCP invocation before any row is uploaded; correct the arguments and retry. Per-row outcomes apply once the tool call reaches the API. Do not assume an MCP argument error means a partial import occurred.
+
 Malformed envelopes/filters return 400; missing/expired/revoked credentials return 401; missing scope/permission or API-key deletion returns 403; missing, deleted, and cross-account IDs all return 404; rate limits return 429; failed read/update/delete operations return 500. See `/api/v1/openapi` for the machine-readable contract.
 
 ## Local verification

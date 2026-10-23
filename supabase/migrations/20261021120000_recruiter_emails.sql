@@ -1,3 +1,7 @@
+-- Database owner: apply this migration once before releasing the outreach site/API
+-- and MCP update. It is not applied by the application or CI.
+-- Requires the existing permission tables, has_role_permission(uuid, text),
+-- and set_updated_at() trigger function. See docs/recruiter-outreach-release.md.
 begin;
 
 insert into public.permission_definitions (permission_key, label, description, category, sort_order, editable)

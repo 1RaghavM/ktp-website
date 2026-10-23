@@ -48,7 +48,7 @@ export default function RecruiterOutreach() {
     return () => { clearTimeout(timer); requestNumber.current += 1; };
   }, [load]);
 
-  function filter(key, value) { setFilters((current) => ({ ...current, [key]: value, page: 1 })); }
+  function filter(key, value) { setLoading(true); setFilters((current) => ({ ...current, page: 1, [key]: value })); }
   function open(email = null) {
     setRows([emailDraft(email || {})]); setModal({ email }); setFormError(''); setNotice('');
   }
@@ -150,7 +150,7 @@ export default function RecruiterOutreach() {
           <td className="p-3"><div className="flex justify-end gap-1">{email.source_url && <a href={email.source_url} target="_blank" rel="noopener noreferrer" aria-label="Open source email" className="rounded-lg p-2 hover:bg-white/10"><ExternalLink size={16} /></a>}<button onClick={() => open(email)} aria-label="Edit email" className="rounded-lg p-2 hover:bg-white/10"><Pencil size={16} /></button><button disabled={Boolean(deleting)} onClick={() => remove(email)} aria-label="Delete email" className="rounded-lg p-2 text-red-300 hover:bg-red-500/10 disabled:opacity-40">{deleting === email.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}</button></div></td>
         </tr>)}</tbody>
       </table></div>}
-      <div className="mt-5 flex items-center justify-between text-sm text-white/65"><button disabled={loading || filters.page <= 1} onClick={() => setFilters((value) => ({ ...value, page: value.page - 1 }))} className="rounded-lg border border-white/15 px-4 py-2 disabled:opacity-35">Previous</button><span>Page {filters.page} of {Math.max(1, Math.ceil(summary.emails / 50))}</span><button disabled={loading || filters.page * 50 >= summary.emails} onClick={() => setFilters((value) => ({ ...value, page: value.page + 1 }))} className="rounded-lg border border-white/15 px-4 py-2 disabled:opacity-35">Next</button></div>
+      <div className="mt-5 flex items-center justify-between text-sm text-white/65"><button disabled={loading || filters.page <= 1} onClick={() => filter('page', filters.page - 1)} className="rounded-lg border border-white/15 px-4 py-2 disabled:opacity-35">Previous</button><span>Page {filters.page} of {Math.max(1, Math.ceil(summary.emails / 50))}</span><button disabled={loading || filters.page * 50 >= summary.emails} onClick={() => filter('page', filters.page + 1)} className="rounded-lg border border-white/15 px-4 py-2 disabled:opacity-35">Next</button></div>
     </section>
   </AccountShell>;
 }

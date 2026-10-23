@@ -363,3 +363,7 @@ Authorization: Bearer ktp_live_YOUR_KEY
 ```
 
 Never paste the key into an AI prompt or commit it in an MCP configuration file.
+
+## Recruiter outreach
+
+Track sent recruiter emails and follow-ups separately from application requirements. See the [Recruiter Outreach API and MCP guide](/docs/recruiter-outreach.md) for metadata fields, account permissions, bulk results, duplicate-safe retries, deletion suppression, and the separately authorized email connector workflow. KTP MCP itself cannot access a mailbox.

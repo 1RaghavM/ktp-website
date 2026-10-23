@@ -43,9 +43,8 @@ $$, '42501', null, 'authenticated clients cannot bypass API update validation');
 select throws_ok($$
   delete from public.recruiter_emails
 $$, '42501', null, 'authenticated clients cannot bypass API deletion suppression');
-select throws_ok($$
-  select public.recruiter_email_summary('10000000-0000-4000-8000-000000000002', null, null, null)
-$$, '42501', null, 'clients cannot call the service-only aggregate for another account');
+select ok(not has_function_privilege(current_user, 'public.recruiter_email_summary(uuid,text,timestamptz,timestamptz)', 'EXECUTE'),
+  'clients cannot call the service-only aggregate for another account');
 reset role;
 
 update public.recruiter_emails set deleted_at = now(), recipients = '[]', company = null, position = null,

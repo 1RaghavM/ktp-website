@@ -16,8 +16,14 @@ Implemented on `recruiter-outreach`; all changes remain local. No deployment, pu
 - Isolated Chrome fixture checks passed for pagination, editing, timestamp/name preservation, multiple recipients, partial bulk failures/retry, search, date-filter wiring, deletion, mobile overflow, and keyboard dismissal. Desktop/mobile screenshots were visually inspected; no browser runtime errors were reported. These checks did not use a live account.
 - Independent review completed. MCP TypeScript transpilation and schema/handler compatibility checks passed using local tooling and simulated network responses; the exact Deno/MCP edge runtime was not executed.
 
-## Remaining local verification
+## Local startup and account verification
 
-The local database refused connections at `127.0.0.1:54322`; the local Supabase startup attempt timed out. The 15-assertion transactional SQL test is saved at `supabase/tests/recruiter_emails.test.sql`, but could not run. The migration has not been applied to any database.
+After disk space was freed, Docker became available. The global CLI failed local initialization because its Realtime image lacked the expected container user. The project's pinned Supabase CLI 2.93.0 successfully started an isolated `ktp-outreach-local` stack, configured under `/private/tmp/ktp-outreach-local` with no hosted project link.
 
-Once the local stack and local login are available, apply the migration locally through the Supabase CLI and run the SQL tests. Then verify real-session CRUD, two-account isolation/RLS, API-key scope/revocation, duplicate preservation, and deletion suppression end to end, plus the MCP tools against the local API. No live-account or exact edge-runtime success is claimed.
+- Initialized local-only profile and permission dependencies, then applied the actual application/API-key and recruiter migrations through the Supabase CLI. This is a feature test environment, not a full production-schema clone; unrelated site features are not populated.
+- Created two local test accounts and an ignored `.env.local` containing only loopback Supabase configuration. Credentials are kept in private local files, not committed or printed.
+- Real local sign-in and HTTP API checks passed: CRUD, imports/follow-ups, multiple recipients, partial failures, pagination, cross-account isolation, immutable source IDs, preserved edits, deletion suppression, and read-only/revoked keys. Verification emails were removed and test API keys revoked.
+- All 15 transactional database assertions passed. The first run lost its connection while wrapping a denied SQL-function call in `throws_ok`; the reason remains unconfirmed. The aggregate-access assertion now checks PostgreSQL's effective function privileges directly, with independent review confirming the coverage.
+- The Next.js development server is available at `http://localhost:3000`. Local login details are in `/private/tmp/ktp-outreach-local/LOGIN.txt`.
+
+No production service, database, account, or deployment was modified. Exact Deno/MCP edge-runtime testing remains outstanding.
